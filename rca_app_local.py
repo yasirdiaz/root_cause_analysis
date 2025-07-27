@@ -8,27 +8,16 @@ import io
 import gspread
 from google.oauth2.service_account import Credentials
 import pandas as pd
-import json  # Importar json para parsear las credenciales
 
 # --- CONFIGURATION FOR GOOGLE SHEETS ---
-# Ensure your credentials.json is in the same directory as this script for local testing.
-# For Streamlit Community Cloud, set the GOOGLE_CREDENTIALS secret.
-# Service account needs read access to your Google Sheets.
 scopes = [
     'https://www.googleapis.com/auth/spreadsheets.readonly'
 ]
 try:
-    # Attempt to load credentials from st.secrets (for Streamlit Cloud deployment)
-    if "GOOGLE_CREDENTIALS" in st.secrets:
-        credentials_info = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
-        credentials = Credentials.from_service_account_info(credentials_info, scopes=scopes)
-    else:
-        # Fallback for local development (credentials.json file)
-        credentials = Credentials.from_service_account_file('credentials.json', scopes=scopes)
+    credentials = Credentials.from_service_account_file('credentials.json', scopes=scopes)
     gspread_client = gspread.authorize(credentials)
 except Exception as e:
-    st.error(
-        f"Error loading Google Sheets credentials: {e}. Make sure credentials.json is present locally or GOOGLE_CREDENTIALS secret is set in Streamlit Cloud.")
+    st.error(f"Error loading Google Sheets credentials: {e}")
     st.stop()
 
 # RCA Health Report Sheet Configuration
@@ -286,8 +275,10 @@ if st.session_state.current_rca_step == "select_queue":
             st.stop()
     else:
         st.write("--- Remaining Queues for RCA (Red or Amber status) ---")
+        # --- ADDED CODE TO DISPLAY THE LIST ---
         for i, item in enumerate(st.session_state.remaining_queues):
             st.write(f"{i + 1}. {item['Queue Name']}, color {item['Status Color'].capitalize()}")
+        # --- END ADDED CODE ---
 
         selected_option_str = st.text_input(
             "Which queue number would you like to process now? (Type 'Finish' to exit and save)",
